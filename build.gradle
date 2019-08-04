@@ -1,0 +1,29 @@
+apply plugin: "java"
+apply plugin: "idea"
+apply plugin: "application"
+
+repositories {
+  mavenLocal()
+  mavenCentral()
+}
+
+dependencies {
+  implementation "org.apache.zookeeper:zookeeper:3.5.5"
+  implementation "org.apache.curator:curator-recipes:4.2.0"
+  testImplementation "junit:junit:4.12"
+  testImplementation "com.google.truth:truth:1.0"
+}
+
+compileJava.options.encoding = "UTF-8"
+compileTestJava.options.encoding = "UTF-8"
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+[compileJava, compileTestJava, javadoc]*.options*.encoding = "UTF-8"
+mainClassName = "org.yao.org.yao.watch.Executor"
+
+test {
+  testLogging {
+    showStandardStreams = true
+    events "passed", "skipped", "failed"
+  }
+}
