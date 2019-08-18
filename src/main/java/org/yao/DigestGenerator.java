@@ -1,3 +1,5 @@
+package org.yao;
+
 import org.apache.zookeeper.server.auth.DigestAuthenticationProvider;
 
 /**
