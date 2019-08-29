@@ -4,7 +4,6 @@ import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.Stat;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -21,7 +20,7 @@ public class WatcherTests {
 
   @Before
   public void setUp() throws IOException, InterruptedException {
-    GlobalWatcher gw = new GlobalWatcher(this);
+    DefaultWatcher gw = new DefaultWatcher(this);
     zk = new ZooKeeper("localhost", 2181, gw);
     // Wait for the connection establishment
     gw.await();
@@ -96,20 +95,45 @@ public class WatcherTests {
     System.out.println("closing ZooKeeper...");
     zk.close();
   }
+
+  @Test
+  public void testRemoveWatch() throws Exception {
+    String path = "/five";
+    setCloseLatch(1);
+
+    Stat fileStat =
+        zk.exists(
+            path,
+            (event) -> {
+              System.out.printf("event in exisits watcher: %s\n", event);
+              if (event.getType() == Watcher.Event.EventType.DataWatchRemoved) {
+                countDownCloseLatch();
+                return;
+              }
+              throw new IllegalStateException();
+            });
+    System.out.printf("%s stat : %s\n", path, fileStat);
+
+    zk.removeAllWatches(path, Watcher.WatcherType.Any, false);
+    closeLatch.await();
+
+    System.out.println("closing ZooKeeper...");
+    zk.close();
+  }
 }
 
-/** Watcher for constructing ZooKeeper. */
-class GlobalWatcher implements Watcher {
+/** Default watcher. */
+class DefaultWatcher implements Watcher {
   private CountDownLatch startLatch = new CountDownLatch(1);
   private WatcherTests tests;
 
-  public GlobalWatcher(WatcherTests tests) {
+  public DefaultWatcher(WatcherTests tests) {
     this.tests = tests;
   }
 
   @Override
   public void process(WatchedEvent event) {
-    System.out.printf("event in global watch: %s\n", event);
+    System.out.printf("event in default watcher: %s\n", event);
     if (event.getType() == Event.EventType.None
         && event.getState() == Event.KeeperState.SyncConnected) {
       startLatch.countDown();

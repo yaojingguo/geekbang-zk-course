@@ -10,6 +10,9 @@ repositories {
 dependencies {
   implementation "org.apache.zookeeper:zookeeper:3.5.5"
   implementation "org.apache.curator:curator-recipes:4.2.0"
+  implementation "org.apache.curator:curator-x-discovery:4.2.0"
+  implementation "org.apache.curator:curator-x-discovery-server:4.2.0"
+
   testImplementation "junit:junit:4.12"
   testImplementation "com.google.truth:truth:1.0"
 }
