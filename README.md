@@ -22,6 +22,9 @@
 ### 3.5 ZooKeeper节点是如何存储数据的
 - [snapshotFormatter.sh](scripts/snapshotFormatter.sh)
 
+### 4.3 使用ZooKeeper实现服务发现(3)
+- [A port of curator-x-discovery-server in Spring Boot](https://github.com/yaojingguo/curator-x-discovery-server)
+
 ## PPT
 1. [第一章：基础篇](slides/第一章：基础篇.pdf)
 1. [第二章：开发篇](slides/第二章：开发篇.pdf)
