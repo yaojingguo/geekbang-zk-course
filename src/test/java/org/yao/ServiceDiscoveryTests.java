@@ -1,7 +1,5 @@
 package org.yao;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.RetryOneTime;
@@ -13,9 +11,6 @@ import org.apache.curator.x.discovery.ServiceProvider;
 import org.junit.Test;
 
 import static com.google.common.truth.Truth.assertThat;
-
-import java.util.Collections;
-import java.util.List;
 
 public class ServiceDiscoveryTests {
   private String connectString = "localhost:2181";
