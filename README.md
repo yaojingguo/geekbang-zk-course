@@ -1,5 +1,7 @@
 # ZooKeeper实战与源代码剖析
 
+极客时间课程首页: [ZooKeeper实战与源码剖析](https://time.geekbang.org/course/intro/100034201)
+
 ## 源码列表
 
 ### 1.7 ZooKeeper架构
