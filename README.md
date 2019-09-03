@@ -30,6 +30,9 @@
 ### 4.3 使用ZooKeeper实现服务发现(3)
 - [A port of curator-x-discovery-server in Spring Boot](https://github.com/yaojingguo/curator-x-discovery-server)
 
+### 4.4 Kafka是如何使用ZooKeeper的
+- [multi API sample code](src/test/java/org/yao/ZooKeeperTests.java)
+
 ## PPT
 1. [第一章：基础篇](slides/第一章：基础篇.pdf)
 1. [第二章：开发篇](slides/第二章：开发篇.pdf)
