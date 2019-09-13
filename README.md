@@ -35,6 +35,11 @@
 
 ## PPT
 1. [第一章：基础篇](slides/第一章：基础篇.pdf)
+
 1. [第二章：开发篇](slides/第二章：开发篇.pdf)
+
 1. [第三章：运维篇](slides/第三章：运维篇.pdf)
+
 1. [第四章：进阶篇](slides/第四章：进阶篇.pdf)
+
+1. [第五章：对比Chubby、etcd和ZooKeeper](slides/第五章：对比Chubby、etcd和ZooKeeper.pdf)
