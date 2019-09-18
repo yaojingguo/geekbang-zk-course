@@ -97,6 +97,16 @@ public class ZooKeeperTests {
     tx.commit(callback, null);
   }
 
+  /**
+   * getChildren does not list descendants recursively.
+   */
+  @Test
+  public void testGetChilren() throws Exception {
+    List<String> paths = zk.getChildren("/a", false);
+    System.out.printf("child paths: %s\n", paths);
+    closeLatch.countDown();
+  }
+
   class DefaultWatcher implements Watcher {
     @Override
     public void process(WatchedEvent event) {
