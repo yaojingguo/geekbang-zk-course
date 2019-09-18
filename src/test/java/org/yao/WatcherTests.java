@@ -8,11 +8,16 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 /**
  * Example code to show how ZooKeeper watchers work. These test cases should run separately. And
  * they need to be driven by zkCli.sh. Check the test case comment for details.
+ *
+ * Watches registered by <tt>exists</tt> and <tt>getData</tt> only monitor changes related to znode
+ * itself. Wathess registered by <tt>getChildren</tt> only monitor changes related to the znode's
+ * children (not descendants).
  */
 public class WatcherTests {
   private ZooKeeper zk;
@@ -35,12 +40,24 @@ public class WatcherTests {
   }
 
   @Test
+  public void testWatchChildren() throws Exception {
+    String fatherPath = "/father";
+    setCloseLatch(1);
+    List<String> paths = zk.getChildren(fatherPath, true);
+    System.out.printf("child paths: %s\n", paths);
+    closeLatch.await();
+    zk.delete(fatherPath, -1);
+    System.out.println("closing ZooKeeper...");
+    zk.close();
+  }
+
+  @Test
   public void testWatchers() throws Exception {
     String onePath = "/one";
     String twoPath = "/two";
     setCloseLatch(2);
 
-    // Set the global watcher
+    // Set the default watcher
     Stat oneStat = zk.exists(onePath, true);
     System.out.printf("%s stat: %s\n", onePath, oneStat);
 
@@ -48,8 +65,8 @@ public class WatcherTests {
     Stat twoStat = zk.exists(twoPath, new ExistsWatcher(this));
     System.out.printf("%s stat: %s\n", twoPath, twoStat);
 
-    // After creating znode /one in zkCli.sh, the global watcher should print a message.
-    // After creating znode /two in zkCli.sh, the global watcher should print a message.
+    // After creating znode /one in zkCli.sh, the default watcher should print a message.
+    // After creating znode /two in zkCli.sh, the default watcher should print a message.
     closeLatch.await();
     zk.delete(onePath, -1);
     zk.delete(twoPath, -1);
@@ -57,7 +74,7 @@ public class WatcherTests {
     zk.close();
   }
 
-  /** Two global watchers are set, but at most one get triggered. */
+  /** Two default watchers are set, but at most one get triggered. */
   @Test
   public void testGlobalWatcherAtMostTriggerOnce() throws Exception {
     String path = "/three";
@@ -69,7 +86,7 @@ public class WatcherTests {
     oneStat = zk.exists(path, true);
     System.out.printf("%s stat for the second exists: %s\n", path, oneStat);
     // After seeing the above output, issue create /three in zkCli. Then one message should be
-    // printed by the global watcher.
+    // printed by the default watcher.
 
     closeLatch.await();
     zk.delete(path, -1);
@@ -160,7 +177,9 @@ class ExistsWatcher implements Watcher {
   @Override
   public void process(WatchedEvent event) {
     System.out.printf("event in exists watch: %s\n", event);
-    if (event.getType() == Event.EventType.NodeCreated) {
+    Event.EventType eventType = event.getType();
+    if (eventType == Event.EventType.NodeCreated
+        || eventType == Event.EventType.NodeChildrenChanged) {
       tests.countDownCloseLatch();
       return;
     }
