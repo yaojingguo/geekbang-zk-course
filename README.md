@@ -33,6 +33,23 @@
 ### 4.4 Kafka是如何使用ZooKeeper的
 - [multi API sample code](src/test/java/org/yao/ZooKeeperTests.java)
 
+### 5.5 etcd API (1)
+- [sample code for Range, Put and DeleteRange APIs](etcd-code/kv_test.go)
+
+### 5.6 etcd API (2)
+- [sample code for Txn API](etcd-code/kv_test.go)
+- [sample code for Watch API](etcd-code/watch_test.go)
+- [sample code for Lease API](etcd-code/lease_test.go)
+
+### 5.7 使用etcd实现分布式队列
+- [Queue](etcd-code/queue.go)
+
+### 5.8 使用etcd实现分布式锁
+- [Mutex](etcd-code/mutex.go)
+
+### 5.9 如何搭建一个etcd生产环境
+- [Procfile](etcd-code/cluster/Procfile)
+
 ## PPT
 1. [第一章：基础篇](slides/第一章：基础篇.pdf)
 
