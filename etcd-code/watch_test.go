@@ -54,7 +54,7 @@ func TestWatchFromPast(t *testing.T) {
 	}
 	rev := presp.Header.Revision
 
-	rch := cli.Watch(context.Background(), key, v3.WithRev(rev))
+	rch := cli.Watch(ctx, key, v3.WithRev(rev))
 	for wresp := range rch {
 		printEvents(&wresp)
 	}

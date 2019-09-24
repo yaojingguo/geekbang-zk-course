@@ -36,7 +36,6 @@ public class ZooKeeperTests {
   @Before
   public void setUp() throws Exception {
     startLatch = new CountDownLatch(1);
-    closeLatch = new CountDownLatch(1);
     callback =
         (int rc, String path, Object ctx, List<OpResult> opResults) -> {
           assertThat(rc).isEqualTo(KeeperException.Code.OK.intValue());
@@ -55,6 +54,8 @@ public class ZooKeeperTests {
 
   @Test
   public void testMulti() throws Exception {
+    closeLatch = new CountDownLatch(1);
+
     // Create two znodes
     Op createOp1 = Op.create(path1, data1, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     Op createOp2 = Op.create(path2, data2, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
@@ -76,6 +77,8 @@ public class ZooKeeperTests {
 
   @Test
   public void testTransaction() throws Exception {
+    closeLatch = new CountDownLatch(1);
+
     // Create two znodes
     Transaction tx = zk.transaction();
     tx.create(path1, data1, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
@@ -97,14 +100,38 @@ public class ZooKeeperTests {
     tx.commit(callback, null);
   }
 
+  @Test
+  public void testTransactionWithCheck() throws Exception {
+    closeLatch = new CountDownLatch(0);
+
+    {
+      Transaction tx = zk.transaction();
+      tx.create(path1, data1, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+      tx.create(path2, data2, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+      tx.check(path1, 0);
+      tx.check(path2, 0);
+      tx.commit();
+    }
+
+    {
+      Transaction tx = zk.transaction();
+      tx.check(path1, 0);
+      tx.check(path2, 0);
+      tx.delete(path1, 0);
+      tx.delete(path2, 0);
+      tx.commit();
+    }
+  }
+
+
   /**
    * getChildren does not list descendants recursively.
    */
   @Test
   public void testGetChilren() throws Exception {
+    closeLatch = new CountDownLatch(0);
     List<String> paths = zk.getChildren("/a", false);
     System.out.printf("child paths: %s\n", paths);
-    closeLatch.countDown();
   }
 
   class DefaultWatcher implements Watcher {
