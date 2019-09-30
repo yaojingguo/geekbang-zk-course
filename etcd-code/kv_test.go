@@ -58,6 +58,20 @@ func TestGetWithRange(t *testing.T) {
 	printGetResponse(response)
 }
 
+// Run beforehand:
+// 	etcdctl put TestGetWithSerializable 1
+func TestGetWithSerializable(t *testing.T) {
+	cli := newClient(t)
+	defer cli.Close()
+
+	key := "TestGetWithSerializable"
+	response, err := cli.Get(context.Background(), key, v3.WithSerializable())
+	if err != nil {
+		t.Fatal(err)
+	}
+	printGetResponse(response)
+}
+
 func TestPut(t *testing.T) {
 	cli := newClient(t)
 	defer cli.Close()

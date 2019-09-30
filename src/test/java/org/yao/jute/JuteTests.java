@@ -14,13 +14,17 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.TreeMap;
 
+/** BinaryOutputArchive and BinaryInputArchive ignore the <tt>tag</tt> argument in all methods. */
 public class JuteTests {
   private String path = "jute-data";
 
   @Test
   public void testSerDe() throws Exception {
+    Files.deleteIfExists(Paths.get(path));
     serialize();
     deserialize();
   }
@@ -29,13 +33,16 @@ public class JuteTests {
     try (OutputStream os = new FileOutputStream(new File(path)); ) {
       BinaryOutputArchive oa = BinaryOutputArchive.getArchive(os);
 
+      // Primitive types
       oa.writeBool(true, "boolean");
       oa.writeInt(1024, "int");
       oa.writeString("yao", "string");
 
+      // Records
       Student xiaoMing = new Student(2, "xiaoMing");
       oa.writeRecord(xiaoMing, "xiaoMing");
 
+      // TreeMap
       TreeMap<String, Integer> map = new TreeMap<>();
       map.put("one", 1);
       map.put("two", 2);
