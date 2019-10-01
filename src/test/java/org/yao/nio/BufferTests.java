@@ -1,4 +1,4 @@
-package org.yao;
+package org.yao.nio;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -42,6 +42,13 @@ public class BufferTests {
 
     buf.clear();
     verifyBufferState(buf, 0, 10);
+  }
+
+  @Test
+  public void testWrap() {
+    byte[] world = {'w', 'o', 'r', 'l', 'd'};
+    ByteBuffer buf = ByteBuffer.wrap(world);
+    verifyBufferState(buf, 0, 5);
   }
 
   @Test

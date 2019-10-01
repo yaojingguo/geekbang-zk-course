@@ -22,7 +22,7 @@ compileTestJava.options.encoding = "UTF-8"
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 [compileJava, compileTestJava, javadoc]*.options*.encoding = "UTF-8"
-mainClassName = "org.yao.org.yao.watch.Executor"
+mainClassName = "org.yao.netty.echo.EchoServer"
 
 test {
   testLogging {
