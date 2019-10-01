@@ -26,4 +26,4 @@ hs_err_pid*
 /build
 
 *.cfg.dynamic.next
-jute-data
+*-data

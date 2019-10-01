@@ -20,17 +20,17 @@ import java.util.TreeMap;
 
 /** BinaryOutputArchive and BinaryInputArchive ignore the <tt>tag</tt> argument in all methods. */
 public class JuteTests {
-  private String path = "jute-data";
+  private String pathname = "jute-data";
 
   @Test
   public void testSerDe() throws Exception {
-    Files.deleteIfExists(Paths.get(path));
+    Files.deleteIfExists(Paths.get(pathname));
     serialize();
     deserialize();
   }
 
   private void serialize() throws Exception {
-    try (OutputStream os = new FileOutputStream(new File(path)); ) {
+    try (OutputStream os = new FileOutputStream(new File(pathname)); ) {
       BinaryOutputArchive oa = BinaryOutputArchive.getArchive(os);
 
       // Primitive types
@@ -59,7 +59,7 @@ public class JuteTests {
   }
 
   private void deserialize() throws Exception {
-    try (FileInputStream is = new FileInputStream(new File(path)); ) {
+    try (FileInputStream is = new FileInputStream(new File(pathname)); ) {
       BinaryInputArchive ia = BinaryInputArchive.getArchive(is);
       System.out.printf("boolean: %b\n", ia.readBool("boolean"));
       System.out.printf("int: %d\n", ia.readInt("int"));
