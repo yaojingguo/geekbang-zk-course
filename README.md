@@ -60,3 +60,5 @@
 1. [第四章：进阶篇](slides/第四章：进阶篇.pdf)
 
 1. [第五章：对比Chubby、etcd和ZooKeeper](slides/第五章：对比Chubby、etcd和ZooKeeper.pdf)
+
+1. [第六章：ZooKeeper实现原理和源码解读](slides/第六章：ZooKeeper实现原理和源码解读.pdf)

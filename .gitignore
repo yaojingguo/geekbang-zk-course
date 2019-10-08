@@ -27,3 +27,7 @@ hs_err_pid*
 
 *.cfg.dynamic.next
 *-data
+
+a.out
+
+echo_*

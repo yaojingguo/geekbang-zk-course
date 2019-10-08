@@ -4,7 +4,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.util.ReferenceCountUtil;
 
 /**
  * Handler implementation for the echo client. It initiates the ping-pong traffic between the echo
@@ -31,7 +30,7 @@ public class EchoClientHandler extends ChannelInboundHandlerAdapter {
 
   @Override
   public void channelRead(ChannelHandlerContext ctx, Object msg) {
-    // ystem.out.printf("channelRead\n");
+    // System.out.printf("channelRead\n");
     ByteBuf in = (ByteBuf) msg;
 
     while (in.isReadable()) {
@@ -39,6 +38,7 @@ public class EchoClientHandler extends ChannelInboundHandlerAdapter {
     }
     System.out.flush();
 
+    // Equivalent to ByteBuffer's flip
     in.readerIndex(0);
     ctx.write(in);
   }
