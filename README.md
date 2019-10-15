@@ -50,6 +50,20 @@
 ### 5.9 如何搭建一个etcd生产环境
 - [Procfile](etcd-code/cluster/Procfile)
 
+### 5.9 如何搭建一个etcd生产环境
+
+### 6.5 网络编程基础
+- [echo_client.c](c-code/echo_client.c)
+- [echo_server.c](c-code/echo_server.c)
+- [EchoClient.java](src/main/java/org/yao/socket/EchoClient.java)
+- [EchoServer.java](src/main/java/org/yao/socket/EchoServer.java)
+
+### 6.6 事件驱动的网络编程
+- [epoll_example.c](c-code/epoll_example.c)
+
+### 6.7 Java的事件驱动网络编程
+- [Netty Echo Example](src/main/java/org/yao/netty/echo)
+
 ## PPT
 1. [第一章：基础篇](slides/第一章：基础篇.pdf)
 

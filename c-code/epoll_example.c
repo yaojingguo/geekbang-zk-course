@@ -157,8 +157,7 @@ static void accept_for_read(int efd, int sfd) {
     if (ret == 0) {
       printf("accepted connection on descriptor %d (host=%s, port=%s)\n", infd, hbuf, sbuf);
     }
-    make_socket_non_blocking(infd);
-    add_to_epoll_for_read(efd, infd);
+    make_socket_non_blocking(infd);add_to_epoll_for_read(efd, infd);
   }
 }
 
