@@ -52,6 +52,15 @@ public class BufferTests {
   }
 
   @Test
+  public void testDuplicate() {
+    buf.flip();
+    ByteBuffer clone = buf.duplicate();
+    verifyGet(buf);
+    verifyBufferState(clone, 0, 5);
+    verifyGet(clone);
+  }
+
+  @Test
   public void testWithChannel() throws Exception {
     Files.deleteIfExists(Paths.get(pathname));
     try (FileChannel channel = new FileOutputStream(pathname).getChannel()) {
