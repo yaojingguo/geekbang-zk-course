@@ -17,7 +17,6 @@ import org.junit.Test;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ThreadLocalRandom;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -123,10 +122,45 @@ public class ZooKeeperTests {
     }
   }
 
+  @Test
+  public void testTransactionWithFailedCheck() throws Exception {
+    closeLatch = new CountDownLatch(0);
+    byte[] data1v0 = {'a'};
+    byte[] data2v0 = {'b'};
 
-  /**
-   * getChildren does not list descendants recursively.
-   */
+    {
+      Transaction tx = zk.transaction();
+      tx.create(path1, data1v0, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+      tx.create(path2, data2v0, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+      tx.check(path1, 0);
+      tx.check(path2, 0);
+      tx.commit();
+    }
+
+    byte[] data1v1 = {'x'};
+    byte[] data2v1 = {'y'};
+    boolean expectionThrown = false;
+    try {
+      Transaction setTx = zk.transaction();
+      setTx.setData(path1, data1v1, 0);
+      setTx.setData(path2, data2v1, 0);
+      setTx.check(path1, 1);
+      // This check will fail.
+      setTx.check(path1, 2);
+      setTx.commit();
+    } catch (KeeperException.BadVersionException ex) {
+      expectionThrown = true;
+    }
+    assertThat(expectionThrown).isTrue();
+
+    assertThat(zk.getData(path1, false, null)).isEqualTo(data1v0);
+    assertThat(zk.getData(path2, false, null)).isEqualTo(data2v0);
+
+    zk.delete(path1, -1);
+    zk.delete(path2, -1);
+  }
+
+  /** getChildren does not list descendants recursively. */
   @Test
   public void testGetChilren() throws Exception {
     closeLatch = new CountDownLatch(0);
