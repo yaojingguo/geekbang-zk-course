@@ -31,3 +31,7 @@ hs_err_pid*
 a.out
 
 echo_*
+
+gradle/
+gradlew
+gradlew.bat
