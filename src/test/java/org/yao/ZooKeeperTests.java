@@ -24,7 +24,7 @@ public class ZooKeeperTests {
   private String pathPrefix = "/multi";
   private ZooKeeper zk;
   private CountDownLatch startLatch;
-  private CountDownLatch closeLatch;
+  private CountDownLatch closeLatch = new CountDownLatch(0);
   private AsyncCallback.MultiCallback callback;
 
   private String path1 = pathPrefix + "1";
@@ -49,6 +49,57 @@ public class ZooKeeperTests {
   public void tearDown() throws Exception {
     closeLatch.await();
     zk.close();
+  }
+
+  /*
+   * 1. If the znode does not, KeeperException.NoNodeException is thrown for any version value.
+   * 2. Otherwise.
+   *   1. If version is less than -1, KeeperException.BadVersionException is thrown.
+   *   2. Else if version is -1, setData succeeds.
+   *   3. Else if version mismatches, KeeperException.BadVersionException is thrown.
+   *   4. Else setData succeeds.
+   */
+  @Test
+  public void testSetData() throws InterruptedException, KeeperException {
+    String path = pathPrefix + "-set";
+    byte[] dataV0 = {'o'};
+
+    for (int version : new int[] {-2, -1, 0}) {
+      System.out.printf("setting data for version %d...\n", version);
+      boolean exceptionThrown = false;
+      try {
+        zk.setData(path, dataV0, -1);
+      } catch (KeeperException.NoNodeException ex) {
+        exceptionThrown = true;
+        ex.printStackTrace();
+      }
+      assertThat(exceptionThrown).isTrue();
+    }
+
+    assertThat(zk.create(path, data1, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT))
+        .isEqualTo(path);
+    System.out.printf("znode created\n");
+
+    for (int version : new int[] {-2, 1}) {
+      System.out.printf("setting data for version %d...\n", version);
+      boolean exceptionThrown = false;
+      try {
+        zk.setData(path, dataV0, version);
+      } catch (KeeperException.BadVersionException ex) {
+        exceptionThrown = true;
+        ex.printStackTrace();
+      }
+      assertThat(exceptionThrown).isTrue();
+    }
+
+    byte[] dataV1 = {'p'};
+    zk.setData(path, dataV1, 0);
+    zk.delete(path, 1);
+  }
+
+  @Test
+  public void testDelete() {
+
   }
 
   @Test
@@ -149,6 +200,7 @@ public class ZooKeeperTests {
       setTx.check(path1, 2);
       setTx.commit();
     } catch (KeeperException.BadVersionException ex) {
+      ex.printStackTrace();
       expectionThrown = true;
     }
     assertThat(expectionThrown).isTrue();
@@ -158,6 +210,35 @@ public class ZooKeeperTests {
 
     zk.delete(path1, -1);
     zk.delete(path2, -1);
+  }
+
+  @Test
+  public void testChecks() throws Exception {
+    closeLatch = new CountDownLatch(0);
+
+    String checkPath = pathPrefix + "-check";
+    boolean exceptionThrown = false;
+    try {
+      Transaction checkTx = zk.transaction();
+      checkTx.check(checkPath, -1);
+      checkTx.commit();
+    } catch (KeeperException.NoNodeException ex) {
+      exceptionThrown = true;
+      ex.printStackTrace();
+    }
+
+    assertThat(exceptionThrown).isTrue();
+    zk.create(checkPath, new byte[] {'a'}, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+
+    try {
+      Transaction checkTx = zk.transaction();
+      // If version is -1, the check passes if the znode exists.
+      checkTx.check(checkPath, -1);
+      checkTx.commit();
+    } catch (Exception ex) {
+      ex.printStackTrace();
+    }
+    zk.delete(checkPath, -1);
   }
 
   /** getChildren does not list descendants recursively. */
