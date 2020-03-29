@@ -52,7 +52,6 @@ public class ZooKeeperTests {
     zk.close();
   }
 
-
   /** getChildren does not list descendants recursively. */
   @Test
   public void testGetChilren() throws Exception {
@@ -110,7 +109,27 @@ public class ZooKeeperTests {
   }
 
   @Test
-  public void testDelete() {
+  public void testDelete() throws Exception {
+    String path = pathPrefix + "-delete";
+    boolean exceptionThrown = false;
+    try {
+      zk.delete(path, 0);
+    } catch (KeeperException.NoNodeException ex) {
+      exceptionThrown = true;
+      ex.printStackTrace();
+    }
+    assertThat(exceptionThrown).isTrue();
+
+    zk.create(path, new byte[]{'a'}, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    exceptionThrown = false;
+    try {
+      zk.delete(path, -2);
+    } catch (KeeperException.BadVersionException ex) {
+      exceptionThrown = true;
+      ex.printStackTrace();
+    }
+    assertThat(exceptionThrown).isTrue();
+    zk.delete(path, -1);
   }
 
   @Test
