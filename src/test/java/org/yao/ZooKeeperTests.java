@@ -135,7 +135,7 @@ public class ZooKeeperTests {
   }
 
   @Test
-  public void test() throws Exception {
+  public void testAsyncWithFirstFailture() throws Exception {
     final AtomicInteger counter = new AtomicInteger(0);
     AsyncCallback.StatCallback statCallback =
         (int rc, String path, Object ctx, Stat stat) -> {
@@ -158,6 +158,35 @@ public class ZooKeeperTests {
     zk.setData(path1, dataV1, 1, statCallback, null);
     // Succeed
     zk.setData(path1, dataV1, 0, statCallback, null);
+
+    assertThat(zk.getData(path1, false, null)).isEqualTo(dataV1);
+    zk.delete(path1, -1);
+  }
+
+  @Test
+  public void testAsyncWithSecondFailture() throws Exception {
+    final AtomicInteger counter = new AtomicInteger(0);
+    AsyncCallback.StatCallback statCallback =
+        (int rc, String path, Object ctx, Stat stat) -> {
+          if (rc == KeeperException.Code.BADVERSION.intValue()) {
+            assertThat(counter.getAndIncrement()).isEqualTo(1);
+            System.out.printf("rc: bad version\n");
+          } else if (rc == KeeperException.Code.OK.intValue()) {
+            assertThat(counter.getAndIncrement()).isEqualTo(0);
+            System.out.printf("rc: ok\n");
+          } else {
+            throw new IllegalStateException();
+          }
+        };
+
+    String path1 = pathPrefix + "-2";
+    byte[] dataV0 = {'a'};
+    byte[] dataV1 = {'b'};
+    zk.create(path1, dataV0, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    // Fail
+    zk.setData(path1, dataV1, 0, statCallback, null);
+    // Succeed
+    zk.setData(path1, dataV1, 1, statCallback, null);
 
     assertThat(zk.getData(path1, false, null)).isEqualTo(dataV1);
     zk.delete(path1, -1);
