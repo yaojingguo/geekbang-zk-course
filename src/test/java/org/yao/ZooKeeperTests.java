@@ -21,14 +21,15 @@ import java.util.concurrent.CountDownLatch;
 import static com.google.common.truth.Truth.assertThat;
 
 public class ZooKeeperTests {
-  private String pathPrefix = "/multi";
+  private String pathPrefix = "/single";
+  private String multiPathPrefix = "/multi";
   private ZooKeeper zk;
   private CountDownLatch startLatch;
   private CountDownLatch closeLatch = new CountDownLatch(0);
   private AsyncCallback.MultiCallback callback;
 
-  private String path1 = pathPrefix + "1";
-  private String path2 = pathPrefix + "2";
+  private String path1 = multiPathPrefix + "1";
+  private String path2 = multiPathPrefix + "2";
   private byte[] data1 = {0x1};
   private byte[] data2 = {0x2};
 
@@ -51,6 +52,17 @@ public class ZooKeeperTests {
     zk.close();
   }
 
+
+  /** getChildren does not list descendants recursively. */
+  @Test
+  public void testGetChilren() throws Exception {
+    String path = pathPrefix + "-get-children";
+    zk.create(path, new byte[]{'a'} ,ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    List<String> paths = zk.getChildren(path, false);
+    System.out.printf("child paths: %s\n", paths);
+    zk.delete(path, -1);
+  }
+
   /*
    * 1. If the znode does not, KeeperException.NoNodeException is thrown for any version value.
    * 2. Otherwise.
@@ -61,7 +73,7 @@ public class ZooKeeperTests {
    */
   @Test
   public void testSetData() throws InterruptedException, KeeperException {
-    String path = pathPrefix + "-set";
+    String path = multiPathPrefix + "-set";
     byte[] dataV0 = {'o'};
 
     for (int version : new int[] {-2, -1, 0}) {
@@ -99,7 +111,6 @@ public class ZooKeeperTests {
 
   @Test
   public void testDelete() {
-
   }
 
   @Test
@@ -214,7 +225,7 @@ public class ZooKeeperTests {
 
   @Test
   public void testCheckTx() throws Exception {
-    String checkPath = pathPrefix + "-check";
+    String checkPath = multiPathPrefix + "-check";
     boolean exceptionThrown = false;
     try {
       Transaction checkTx = zk.transaction();
@@ -238,14 +249,6 @@ public class ZooKeeperTests {
     }
     zk.delete(checkPath, -1);
   }
-
-  /** getChildren does not list descendants recursively. */
-  @Test
-  public void testGetChilren() throws Exception {
-    List<String> paths = zk.getChildren("/a", false);
-    System.out.printf("child paths: %s\n", paths);
-  }
-
   class DefaultWatcher implements Watcher {
     @Override
     public void process(WatchedEvent event) {
