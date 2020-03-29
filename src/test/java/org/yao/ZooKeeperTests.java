@@ -11,12 +11,14 @@ import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.data.Stat;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -129,7 +131,36 @@ public class ZooKeeperTests {
       ex.printStackTrace();
     }
     assertThat(exceptionThrown).isTrue();
-    zk.delete(path, -1);
+    zk.delete(path, 0);
+  }
+
+  @Test
+  public void test() throws Exception {
+    final AtomicInteger counter = new AtomicInteger(0);
+    AsyncCallback.StatCallback statCallback =
+        (int rc, String path, Object ctx, Stat stat) -> {
+          if (rc == KeeperException.Code.BADVERSION.intValue()) {
+            assertThat(counter.getAndIncrement()).isEqualTo(0);
+            System.out.printf("rc: bad version\n");
+          } else if (rc == KeeperException.Code.OK.intValue()) {
+            assertThat(counter.getAndIncrement()).isEqualTo(1);
+            System.out.printf("rc: ok\n");
+          } else {
+            throw new IllegalStateException();
+          }
+        };
+
+    String path1 = pathPrefix + "-1";
+    byte[] dataV0 = {'a'};
+    byte[] dataV1 = {'b'};
+    zk.create(path1, dataV0, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    // Fail
+    zk.setData(path1, dataV1, 1, statCallback, null);
+    // Succeed
+    zk.setData(path1, dataV1, 0, statCallback, null);
+
+    assertThat(zk.getData(path1, false, null)).isEqualTo(dataV1);
+    zk.delete(path1, -1);
   }
 
   @Test
