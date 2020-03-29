@@ -126,7 +126,7 @@ public class ZooKeeperTests {
   }
 
   @Test
-  public void testTransaction() throws Exception {
+  public void testTx() throws Exception {
     closeLatch = new CountDownLatch(1);
 
     // Create two znodes
@@ -151,7 +151,7 @@ public class ZooKeeperTests {
   }
 
   @Test
-  public void testTransactionWithCheck() throws Exception {
+  public void testCreateAndCheckTx() throws Exception {
     closeLatch = new CountDownLatch(0);
 
     {
@@ -174,7 +174,7 @@ public class ZooKeeperTests {
   }
 
   @Test
-  public void testTransactionWithFailedCheck() throws Exception {
+  public void testSetDataAndFailedCheckTx() throws Exception {
     closeLatch = new CountDownLatch(0);
     byte[] data1v0 = {'a'};
     byte[] data2v0 = {'b'};
@@ -213,9 +213,7 @@ public class ZooKeeperTests {
   }
 
   @Test
-  public void testChecks() throws Exception {
-    closeLatch = new CountDownLatch(0);
-
+  public void testCheckTx() throws Exception {
     String checkPath = pathPrefix + "-check";
     boolean exceptionThrown = false;
     try {
@@ -244,7 +242,6 @@ public class ZooKeeperTests {
   /** getChildren does not list descendants recursively. */
   @Test
   public void testGetChilren() throws Exception {
-    closeLatch = new CountDownLatch(0);
     List<String> paths = zk.getChildren("/a", false);
     System.out.printf("child paths: %s\n", paths);
   }
