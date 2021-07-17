@@ -17,8 +17,9 @@ package etcd_code
 import (
 	"context"
 
-	"go.etcd.io/etcd/clientv3"
-	"go.etcd.io/etcd/mvcc/mvccpb"
+
+	"go.etcd.io/etcd/client/v3"
+	"go.etcd.io/etcd/api/v3/mvccpb"
 )
 
 // WaitEvents waits on a key until it observes the given events and returns the final one.

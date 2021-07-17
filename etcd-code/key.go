@@ -17,13 +17,13 @@ package etcd_code
 import (
 	"context"
 	"fmt"
-	"go.etcd.io/etcd/mvcc/mvccpb"
+	"go.etcd.io/etcd/api/v3/mvccpb"
 	"strings"
 	"time"
 
-	v3 "go.etcd.io/etcd/clientv3"
-	"go.etcd.io/etcd/clientv3/concurrency"
-	pb "go.etcd.io/etcd/etcdserver/etcdserverpb"
+	v3 "go.etcd.io/etcd/client/v3"
+	"go.etcd.io/etcd/client/v3/concurrency"
+	pb "go.etcd.io/etcd/api/v3/etcdserverpb"
 )
 
 // RemoteKV is a key/revision pair created by the client and stored on etcd

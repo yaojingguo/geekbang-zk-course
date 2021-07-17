@@ -3,7 +3,7 @@ package etcd_code
 import (
 	"context"
 	"fmt"
-	v3 "go.etcd.io/etcd/clientv3"
+	v3 "go.etcd.io/etcd/client/v3"
 	"testing"
 	"time"
 )
@@ -16,15 +16,18 @@ func TestLeaseGrant(t *testing.T) {
 	ctx := context.Background()
 
 	// Grant a lease
-	resp, err := cli.Grant(ctx, 10)
+	resp, err := cli.Grant(ctx, 5)
 
 	// Put a key with a lease
 	_, err = cli.Put(ctx, key, "1", v3.WithLease(resp.ID))
 	if err != nil {
 		t.Fatal(err)
 	}
-	// The key will be removed after 5 seconds. Use etcdctl check it.
-	time.Sleep(15 * time.Second)
+
+	// The key will be removed after the lease expires. Use "etcdctl get TestLeaseGrant" to check it.
+	seconds := 15
+	fmt.Printf("sleeping for %d seconds...", seconds)
+	time.Sleep(time.Duration(seconds) * time.Second)
 	fmt.Println("woke up")
 }
 
@@ -34,7 +37,7 @@ func TestLeaseRevoke(t *testing.T) {
 	key := "TestLeaseRevoke"
 	ctx := context.Background()
 
-	resp, err := cli.Grant(ctx, 5)
+	resp, err := cli.Grant(ctx, 50)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -53,11 +56,9 @@ func TestLeaseRevoke(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	fmt.Println("number of keys:", len(gresp.Kvs))
-	if keyCount := len(gresp.Kvs); keyCount != 0 {
+	if keyCount := gresp.Count; keyCount != 0 {
 		t.Errorf("expected %d keys, but got %d keys", 0, keyCount)
 	}
-	// Output: number of keys: 0
 }
 
 func TestLeaseWithKeepAlive(t *testing.T) {
@@ -74,6 +75,7 @@ func TestLeaseWithKeepAlive(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	fmt.Println("put a value")
 
 	// Since the lease will be kept alive, the
 	ch, kaerr := cli.KeepAlive(context.TODO(), resp.ID)
@@ -84,10 +86,10 @@ func TestLeaseWithKeepAlive(t *testing.T) {
 	ka := <-ch
 	fmt.Println("ttl:", ka.TTL)
 	// Output: ttl: 5
-	seconds := 50
+	seconds := 20
 	fmt.Printf("sleeping for %d seconds\n", seconds)
 	// During this time, "etcdctl get TestLeaseWithKeepAlive" always return a value
-	time.Sleep(20 * time.Second)
+	time.Sleep(time.Duration(seconds) * time.Second)
 	fmt.Printf("woke up, the key should be deleted after some time\n")
 }
 
@@ -106,6 +108,7 @@ func TestLeaseWithKeepAliveOnce(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	fmt.Println("put a value")
 
 	go func() {
 		time.Sleep(8 * time.Second)

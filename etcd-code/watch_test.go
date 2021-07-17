@@ -3,7 +3,7 @@ package etcd_code
 import (
 	"context"
 	"fmt"
-	v3 "go.etcd.io/etcd/clientv3"
+	v3 "go.etcd.io/etcd/client/v3"
 	"testing"
 )
 
@@ -14,10 +14,12 @@ var end = []byte("end")
 func TestOneWatch(t *testing.T) {
 	cli := newClient(t)
 	defer cli.Close()
+	ctx, cancel := context.WithCancel(context.Background())
 
-	rch := cli.Watch(context.Background(), "TestOneWatch")
+	rch := cli.Watch(ctx, "TestOneWatch")
 	for wresp := range rch {
 		printEvents(&wresp)
+		cancel()
 	}
 }
 
@@ -26,27 +28,35 @@ func TestOneWatch(t *testing.T) {
 // 	etcdctl put TestTwoWatches2 2
 func TestTwoWatches(t *testing.T) {
 	cli := newClient(t)
+	ctx, cancel := context.WithCancel(context.Background())
 
 	keys := []string{"TestTwoWatches1", "TestTwoWatches2"}
-	rch1 := cli.Watch(context.Background(), keys[0])
-	rch2 := cli.Watch(context.Background(), keys[1])
+	rch1 := cli.Watch(ctx, keys[0])
+	rch2 := cli.Watch(ctx, keys[1])
 
+	count := 0
 	for {
 		select {
 		case wresp1 := <-rch1:
 			printEvents(&wresp1)
+			count += 1
 		case wresp2 := <-rch2:
 			printEvents(&wresp2)
+			count += 1
+		}
+		if count == 2{
+			cancel()
+			break
 		}
 	}
 }
 
-func TestWatchFromPast(t *testing.T) {
+func TestWatchPast(t *testing.T) {
 	cli := newClient(t)
 	defer cli.Close()
 
-	key := "TestWatchFromPast"
-	ctx := context.Background()
+	key := "TestWatchPast"
+	ctx, cancel := context.WithCancel(context.Background())
 
 	presp, err := cli.Put(ctx, key, "1")
 	if err != nil {
@@ -57,12 +67,14 @@ func TestWatchFromPast(t *testing.T) {
 	rch := cli.Watch(ctx, key, v3.WithRev(rev))
 	for wresp := range rch {
 		printEvents(&wresp)
+		cancel()
 	}
+	// Watch can watch events happened in the past.
 	// Output: PUT event TestWatchFromPast: 1
 }
 
 func printEvents(resp *v3.WatchResponse) {
 	for _, ev := range resp.Events {
-		fmt.Printf("%s event key-value %s: %s\n", ev.Type, ev.Kv.Key, ev.Kv.Value)
+		fmt.Printf("%s event key-value: %s => %s\n", ev.Type, ev.Kv.Key, ev.Kv.Value)
 	}
 }

@@ -17,9 +17,9 @@ package etcd_code
 import (
 	"context"
 	"fmt"
-	v3 "go.etcd.io/etcd/clientv3"
-	"go.etcd.io/etcd/clientv3/concurrency"
-	pb "go.etcd.io/etcd/etcdserver/etcdserverpb"
+	v3 "go.etcd.io/etcd/client/v3"
+	"go.etcd.io/etcd/client/v3/concurrency"
+	pb "go.etcd.io/etcd/api/v3/etcdserverpb"
 )
 
 type Mutex struct {

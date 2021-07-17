@@ -3,15 +3,15 @@ package etcd_code
 import (
 	"context"
 	"fmt"
-	v3 "go.etcd.io/etcd/clientv3"
+	v3 "go.etcd.io/etcd/client/v3"
 	"testing"
 )
 
 func printGetResponse(r *v3.GetResponse) {
 	fmt.Printf("response header: %q\n", r.Header)
-	fmt.Printf("kvs: %v\n", r.Kvs)
-	fmt.Printf("more: %t\n", r.More)
-	fmt.Printf("count: %d\n", r.Count)
+	fmt.Printf("  kvs: %v\n", r.Kvs)
+	fmt.Printf("  more: %t\n", r.More)
+	fmt.Printf("  count: %d\n", r.Count)
 }
 
 // Run beforehand:
@@ -41,6 +41,9 @@ func TestGetWithPrefix(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	if response.Count != 2 {
+		t.Errorf("expected %d keys, got %d keys", 2,  response.Count)
+	}
 	printGetResponse(response)
 }
 
@@ -55,6 +58,9 @@ func TestGetWithRange(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	if response.Count != 2 {
+		t.Errorf("expected %d keys, got %d keys", 2,  response.Count)
+	}
 	printGetResponse(response)
 }
 
@@ -68,6 +74,9 @@ func TestGetWithSerializable(t *testing.T) {
 	response, err := cli.Get(context.Background(), key, v3.WithSerializable())
 	if err != nil {
 		t.Fatal(err)
+	}
+	if response.Count != 1 {
+		t.Errorf("expected %d keys, got %d keys", 1,  response.Count)
 	}
 	printGetResponse(response)
 }
@@ -95,6 +104,9 @@ func TestDelete(t *testing.T) {
 	response, err := cli.Delete(context.Background(), key)
 	if err != nil {
 		t.Fatal(err)
+	}
+	if response.Deleted != 1 {
+		t.Errorf("expected to delete %d keys, deleted %d keys", 1, response.Deleted)
 	}
 	fmt.Printf("header: %v\n", response.Header)
 	fmt.Printf("deleted: %d\n", response.Deleted)
@@ -126,8 +138,8 @@ func TestTxn(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if l := len(gresp.Kvs); l != 1 {
-		t.Errorf("expeected 1 key-value, but got %d key-values\n", l)
+	if gresp.Count != 1 {
+		t.Errorf("expeected 1 key-value, but got %d key-values\n", gresp.Count)
 	}
 
 	if value := string(gresp.Kvs[0].Value); value != "then" {
@@ -157,8 +169,8 @@ func TestTxnOpOrder(t *testing.T) {
 		t.Fatal(err)
 	}
 	printTxnResponse(resp)
-	if l := len(resp.Responses[0].GetResponseRange().Kvs); l != 0 {
-		t.Errorf("expeected 0 key-value, but got %d key-values\n", l)
+	if count := resp.Responses[0].GetResponseRange().Count; count != 0 {
+		t.Errorf("expeected 0 key-value, but got %d key-values\n", count)
 	}
 	delete(ctx, cli, key, t)
 
@@ -168,8 +180,8 @@ func TestTxnOpOrder(t *testing.T) {
 		t.Fatal(err)
 	}
 	printTxnResponse(resp)
-	if l := len(resp.Responses[1].GetResponseRange().Kvs); l != 1 {
-		t.Errorf("expeected 1 key-value, but got %d key-values\n", l)
+	if count := resp.Responses[1].GetResponseRange().Count; count != 1 {
+		t.Errorf("expeected 1 key-value, but got %d key-values\n", count)
 	}
 	delete(ctx, cli, key, t)
 }
@@ -185,7 +197,7 @@ func TestTxnMultis(t *testing.T) {
 	var puts [2]v3.Op
 	var gets [2]v3.Op
 	for i := 0; i < 2; i++ {
-		val := string(i + 1)
+		val := fmt.Sprint(i+ 1)
 		cmps[i] = v3.Compare(v3.CreateRevision(keys[i]), "=", 0)
 		puts[i] = v3.OpPut(keys[i], val)
 		gets[i] = v3.OpGet(keys[i])
@@ -255,32 +267,32 @@ func TestVersionAndRevision(t *testing.T) {
 }
 
 func put(ctx context.Context, cli *v3.Client, key string, t *testing.T) {
-	fmt.Println("Put")
+	t.Log("Put")
 	response, err := cli.Put(ctx, key, "one", v3.WithPrevKV())
 	if err != nil {
 		t.Fatal(err)
 	}
-	fmt.Printf("put revision: %d\n", response.Header.Revision)
-	fmt.Printf("prev_kv: %v\n\n", response.PrevKv)
+	t.Logf("  put revision: %d\n", response.Header.Revision)
+	t.Logf("  prev_kv: %v\n\n", response.PrevKv)
 }
 
 func get(ctx context.Context, cli *v3.Client, key string, t *testing.T) {
-	fmt.Println("Get")
+	t.Log("Get")
 	response, err := cli.Get(ctx, key, v3.WithPrevKV())
 	if err != nil {
 		t.Fatal(err)
 	}
-	fmt.Printf("get revision: %d\n", response.Header.Revision)
-	fmt.Printf("kvs: %v\n\n", response.Kvs)
+	t.Logf("get revision: %d\n", response.Header.Revision)
+	t.Logf("kvs: %v\n\n", response.Kvs)
 }
 
 func delete(ctx context.Context, cli *v3.Client, key string, t *testing.T) {
-	fmt.Println("Delete")
+	t.Log("Delete")
 	response, err := cli.Delete(ctx, key, v3.WithPrevKV())
 	if err != nil {
 		t.Fatal(err)
 	}
-	fmt.Printf("delete revision: %d\n", response.Header.Revision)
-	fmt.Printf("deleted: %d\n", response.Deleted)
-	fmt.Printf("prev_kvs: %v\n\n", response.PrevKvs)
+	t.Logf("  delete revision: %d\n", response.Header.Revision)
+	t.Logf("  deleted: %d\n", response.Deleted)
+	t.Logf("  prev_kvs: %v\n\n", response.PrevKvs)
 }
